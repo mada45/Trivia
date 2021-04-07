@@ -1,14 +1,18 @@
 import React from 'react'
 import CategoryList from './CategoryList'
+import Game from './Game'
 import trivia from '../api/trivia'
 
 class App extends React.Component {
-  state = { categoryList: [], questions: [] }
+  constructor(props) {
+    super(props)
+    this.categoryListRef = React.createRef()
+  }
+  state = { categoryList: [], questionAndAnswer: [] }
 
   getCategories = async () => {
     const response = await trivia.get('/api_category.php')
     this.setState({ categoryList: response.data.trivia_categories })
-    console.log(response)
   }
 
   onSelectedCategory = async (id) => {
@@ -18,8 +22,21 @@ class App extends React.Component {
         category: id,
       },
     })
-    this.setState({ questions: response.data.results })
-    console.log(response)
+    this.setState({ questionAndAnswer: response.data.results[0] })
+    console.log(response.data.results)
+    console.log(this.categoryListRef)
+  }
+
+  renderIndex = ({ questionAndAnswer, categoryList }) => {
+    if (questionAndAnswer.length !== 0) {
+      return <Game questionAndAnswer={questionAndAnswer} />
+    }
+    return (
+      <CategoryList
+        onSelectedCategory={this.onSelectedCategory}
+        categoryList={categoryList}
+      />
+    )
   }
 
   componentDidMount() {
@@ -29,13 +46,7 @@ class App extends React.Component {
   render() {
     return (
       <div className="ui container">
-        <h1>Trivia</h1>
-        <div className="ui segment">
-          <CategoryList
-            onSelectedCategory={this.onSelectedCategory}
-            categoryList={this.state.categoryList}
-          />
-        </div>
+        <div ref={this.categoryListRef}>{this.renderIndex(this.state)}</div>
       </div>
     )
   }
